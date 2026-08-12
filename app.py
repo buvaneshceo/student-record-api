@@ -13,7 +13,10 @@ MONGODB_URI = os.getenv("MONGODB_URI")
 DATABASE_NAME = os.getenv("MONGODB_DATABASE")
 
 # Connect to MongoDB Atlas
-client = MongoClient(MONGODB_URI)
+client = MongoClient(
+    MONGODB_URI,
+    serverSelectionTimeoutMS=10000
+)
 
 db = client[DATABASE_NAME]
 
@@ -23,9 +26,23 @@ students = db["students"]
 @app.route("/")
 def home():
 
-    return jsonify({
-        "message": "Student Record API is running"
-    })
+    try:
+        client.admin.command("ping")
+
+        return jsonify({
+            "message": "Student Record API is running",
+            "mongodb": "Connected"
+        })
+
+    except Exception as e:
+
+        print("MongoDB CONNECTION ERROR:", repr(e))
+
+        return jsonify({
+            "message": "Student Record API is running",
+            "mongodb": "Connection failed",
+            "error": str(e)
+        }), 500
 
 
 # CREATE
